@@ -1,0 +1,6 @@
+[server]
+address = "localhost"   # only this computer can open the site
+headless = false
+
+[browser]
+gatherUsageStats = false

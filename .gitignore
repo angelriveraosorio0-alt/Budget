@@ -1,0 +1,19 @@
+# Secrets
+.env
+*.key
+
+# Your real financial data - never commit
+data/*
+!data/.gitkeep
+*.csv
+!sample_data/*.csv
+*.db
+*.sqlite
+*.xlsx
+*.ofx
+*.qfx
+
+# Python
+__pycache__/
+.venv/
+*.pyc
