@@ -54,6 +54,16 @@ with st.expander("⚠️ PRIVACY & SECURITY DISCLAIMER - click to read"):
         """
     )
 
+# ---------- Sidebar: choose how to start ----------
+start_mode = st.sidebar.radio(
+    "How do you want to start?",
+    ["Upload a bank CSV", "Enter numbers manually"],
+)
+if start_mode == "Enter numbers manually":
+    from manual import render as render_manual
+    render_manual()
+    st.stop()
+
 # ---------- Sidebar: load data ----------
 st.sidebar.header("1. Load your transactions")
 uploaded = st.sidebar.file_uploader("Choose your bank's CSV file", type="csv")
