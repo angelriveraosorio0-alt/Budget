@@ -11,32 +11,48 @@ st.set_page_config(page_title="HealthyPockets", page_icon="💰", layout="wide")
 st.title("💰 HealthyPockets")
 st.caption("Runs only on this computer. Your file is never saved or uploaded anywhere.")
 
+# Bright, hard-to-miss header for the disclaimer drop-down
 st.markdown(
     """
-<div style="background:#FFD60A; color:#1a1a1a; border:4px solid #FF6B00;
-            border-radius:12px; padding:20px 26px; margin:12px 0 24px 0;
-            font-size:1.25rem; line-height:1.55;">
-<div style="font-size:1.9rem; font-weight:800; margin-bottom:10px;">
-⚠️ PRIVACY &amp; SECURITY DISCLAIMER
-</div>
-<ul style="margin:0; padding-left:1.4rem;">
-<li><b>Local use:</b> When you run HealthyPockets on your own computer, your CSV is read into
-memory only. It is not written to disk and not sent to any other service. Closing the app clears it.</li>
-<li><b>Public hosting:</b> If this app is ever hosted on a public website, uploaded files would pass
-through that host's server and may appear in its logs.
-<b>Do not upload real bank data to a hosted copy unless you trust the host and its owner.</b>
-Use the sample data instead.</li>
-<li><b>No login:</b> Anyone who can open the page can use it, so only run it on a computer
-and network you trust.</li>
-<li><b>Not financial advice:</b> Categories are guessed from keywords and may be wrong.
-Check your numbers against your bank statements.</li>
-<li><b>Safest option:</b> Download the code from GitHub and run it yourself so your data never
-leaves your computer.</li>
-</ul>
-</div>
+<style>
+[data-testid="stExpander"] details {
+    background: #FFD60A;
+    border: 4px solid #FF6B00;
+    border-radius: 12px;
+}
+[data-testid="stExpander"] summary {
+    background: #FFD60A;
+    border-radius: 8px;
+    padding: 14px 18px;
+}
+[data-testid="stExpander"] summary p {
+    color: #1a1a1a;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+[data-testid="stExpander"] summary svg { color: #1a1a1a; }
+[data-testid="stExpander"] details > div { color: #1a1a1a; }
+</style>
 """,
     unsafe_allow_html=True,
 )
+
+with st.expander("⚠️ PRIVACY & SECURITY DISCLAIMER - click to read"):
+    st.markdown(
+        """
+- **Local use:** When you run HealthyPockets on your own computer, your CSV is read into
+  memory only. It is not written to disk and not sent to any other service. Closing the app clears it.
+- **Public hosting:** If this app is ever hosted on a public website, uploaded files would pass
+  through that host's server and may appear in its logs. **Do not upload real bank data to a
+  hosted copy unless you trust the host and its owner.** Use the sample data instead.
+- **No login:** Anyone who can open the page can use it, so only run it on a computer
+  and network you trust.
+- **Not financial advice:** Categories are guessed from keywords and may be wrong. Check your
+  numbers against your bank statements.
+- **Safest option:** Download the code from GitHub and run it yourself so your data never
+  leaves your computer.
+        """
+    )
 
 # ---------- Sidebar: load data ----------
 st.sidebar.header("1. Load your transactions")
