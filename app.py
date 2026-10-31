@@ -11,6 +11,23 @@ st.set_page_config(page_title="HealthyPockets", page_icon="💰", layout="wide")
 st.title("💰 HealthyPockets")
 st.caption("Runs only on this computer. Your file is never saved or uploaded anywhere.")
 
+with st.expander("🔒 Privacy & security disclaimer"):
+    st.markdown(
+        """
+- **Local use:** When you run HealthyPockets on your own computer, your CSV is read into
+  memory only. It is not written to disk and not sent to any other service. Closing the app clears it.
+- **Public hosting:** If this app is ever hosted on a public website, uploaded files would pass
+  through that host's server and may appear in its logs. **Do not upload real bank data to a
+  hosted copy unless you trust the host and its owner.** Use the sample data instead.
+- **No accounts or encryption of your own:** This app has no login. Anyone who can open the
+  page can use it, so only run it on a computer and network you trust.
+- **Not financial advice:** Categories are guessed from keywords and may be wrong. Check your
+  numbers against your bank statements.
+- **Safest option:** Download the code from GitHub and run it yourself so your data never
+  leaves your computer.
+        """
+    )
+
 # ---------- Sidebar: load data ----------
 st.sidebar.header("1. Load your transactions")
 uploaded = st.sidebar.file_uploader("Choose your bank's CSV file", type="csv")
