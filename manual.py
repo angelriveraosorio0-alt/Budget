@@ -43,7 +43,7 @@ def render():
     by_cat = by_cat[by_cat > 0]
     if not by_cat.empty:
         st.subheader("Expenses by category")
-        st.bar_chart(by_cat)
+        st.bar_chart(by_cat, color="#22C55E")
 
     # ---------- Savings goals ----------
     st.subheader("🎯 Savings goals")
@@ -76,10 +76,11 @@ def render():
                          ).fillna(1.0).clip(upper=1.0)
 
     for _, g in goals.iterrows():
-        st.markdown(f"**{g['goal']}** - \\${g['saved_so_far']:,.2f} of \\${g['target']:,.2f}")
-        st.progress(float(g["progress"]))
-        st.caption(f"Save ${g['save_per_month']:,.2f} per month for {int(g['months'])} "
-                   "months to get there.")
+        with st.container(border=True):
+            st.markdown(f"**{g['goal']}** - \\${g['saved_so_far']:,.2f} of \\${g['target']:,.2f}")
+            st.progress(float(g["progress"]))
+            st.caption(f"Save \\${g['save_per_month']:,.2f} per month for "
+                       f"{int(g['months'])} months to get there.")
 
     needed = float(goals["save_per_month"].sum())
     st.markdown(f"**All goals together need \\${needed:,.2f} per month.**")

@@ -7,8 +7,66 @@ import streamlit as st
 from budget import CATEGORIES, categorize_by_rules
 from loader import build_clean_frame, guess_column
 
-st.set_page_config(page_title="HealthyPockets", page_icon="💰", layout="wide")
-st.title("💰 HealthyPockets")
+st.set_page_config(page_title="HealthyPockets", page_icon="🐷", layout="wide")
+
+# Cartoon look: chunky outlines, rounded corners, hard "sticker" shadows, bouncy font.
+# Uses fonts already on the computer, so nothing is loaded from the internet.
+st.markdown(
+    """
+<style>
+html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
+    font-family: "Comic Sans MS", "Chalkboard SE", "Trebuchet MS", sans-serif;
+}
+h1, h2, h3 { font-weight: 900 !important; letter-spacing: 0.5px; }
+h1 { color: #15803D !important; text-shadow: 3px 3px 0 #BBF7D0; }
+[data-testid="stSidebar"] {
+    background: #BBF7D0;
+    border-right: 4px solid #14532D;
+}
+[data-testid="stMetric"] {
+    background: #FFFFFF;
+    border: 3px solid #14532D;
+    border-radius: 18px;
+    box-shadow: 5px 5px 0 #14532D;
+    padding: 12px 18px;
+}
+[data-testid="stMetricValue"] { color: #15803D; font-weight: 900; font-size: 1.8rem; }
+.stButton > button, [data-testid="stFileUploader"] button {
+    border: 3px solid #14532D;
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 #14532D;
+    font-weight: 800;
+}
+[data-testid="stFileUploader"] section,
+[data-testid="stDataFrame"], [data-testid="stDataEditor"],
+[data-testid="stAlert"], [data-testid="stNumberInput"] input {
+    border: 3px solid #14532D !important;
+    border-radius: 14px !important;
+}
+[data-testid="stProgressBarTrack"] {
+    background: #FFFFFF;
+    border: 3px solid #14532D;
+    border-radius: 20px;
+    height: 20px;
+    overflow: hidden;
+}
+[data-testid="stProgressBarTrack"] > div { background-color: #22C55E; border-radius: 20px; }
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] > [data-testid="stProgress"]) {
+    background: #FFFFFF;
+    border: 3px solid #14532D !important;
+    border-radius: 18px !important;
+    box-shadow: 5px 5px 0 #14532D;
+    padding: 10px 16px;
+}
+[data-testid="stAlert"], [data-testid="stDataEditor"], [data-testid="stDataFrame"] {
+    box-shadow: 4px 4px 0 #14532D;
+}
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+st.title("🐷 HealthyPockets")
 st.caption("Runs only on this computer. Your file is never saved or uploaded anywhere.")
 
 # Bright, hard-to-miss header for the disclaimer drop-down
@@ -145,7 +203,7 @@ with left:
     if by_cat.empty:
         st.write("No spending in this period.")
     else:
-        st.bar_chart(by_cat)
+        st.bar_chart(by_cat, color="#22C55E")
         table = by_cat.reset_index()
         table["% of spending"] = (table["amount"] / table["amount"].sum() * 100).round(1)
         table["amount"] = table["amount"].map("${:,.2f}".format)
@@ -155,7 +213,7 @@ with right:
     st.subheader("Spending by month")
     all_spend = df[df["amount"] < 0].copy()
     all_spend["amount"] = all_spend["amount"].abs()
-    st.bar_chart(all_spend.groupby("month")["amount"].sum())
+    st.bar_chart(all_spend.groupby("month")["amount"].sum(), color="#16A34A")
 
 # ---------- Transactions ----------
 st.subheader("Transactions")
