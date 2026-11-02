@@ -27,7 +27,7 @@ st.markdown(
 }
 [data-testid="stExpander"] summary p {
     color: #1a1a1a;
-    font-size: 1.4rem;
+    font-size: 1.05rem;
     font-weight: 800;
 }
 [data-testid="stExpander"] summary svg { color: #1a1a1a; }
@@ -37,7 +37,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-with st.expander("⚠️ PRIVACY & SECURITY DISCLAIMER - click to read"):
+with st.sidebar.expander("⚠️ PRIVACY & SECURITY DISCLAIMER - click to read"):
     st.markdown(
         """
 - **Local use:** When you run HealthyPockets on your own computer, your CSV is read into
