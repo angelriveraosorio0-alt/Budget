@@ -7,7 +7,7 @@ import streamlit as st
 from budget import CATEGORIES, categorize_by_rules
 from loader import build_clean_frame, guess_column
 
-st.set_page_config(page_title="HealthyPockets", page_icon="🐷", layout="wide")
+st.set_page_config(page_title="HealthyPockets", page_icon="🥑", layout="wide")
 
 # Cartoon look: chunky outlines, rounded corners, hard "sticker" shadows, bouncy font.
 # Uses fonts already on the computer, so nothing is loaded from the internet.
@@ -30,7 +30,16 @@ h1 { color: #15803D !important; text-shadow: 3px 3px 0 #BBF7D0; }
     box-shadow: 5px 5px 0 #14532D;
     padding: 12px 18px;
 }
-[data-testid="stMetricValue"] { color: #15803D; font-weight: 900; font-size: 1.8rem; }
+[data-testid="stMetricValue"] {
+    color: #15803D; font-weight: 900;
+    font-size: clamp(0.95rem, 2.2vw, 1.6rem);
+}
+[data-testid="stMetric"] { padding: 10px 14px; }
+[data-testid="stMetricValue"] > div, [data-testid="stMetricLabel"] p {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
 .stButton > button, [data-testid="stFileUploader"] button {
     border: 3px solid #14532D;
     border-radius: 14px;
@@ -66,7 +75,7 @@ h1 { color: #15803D !important; text-shadow: 3px 3px 0 #BBF7D0; }
     unsafe_allow_html=True,
 )
 
-st.title("🐷 HealthyPockets")
+st.title("🥑 HealthyPockets")
 st.caption("Runs only on this computer. Your file is never saved or uploaded anywhere.")
 
 # Bright, hard-to-miss header for the disclaimer drop-down

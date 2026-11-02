@@ -1,6 +1,7 @@
 """Manual entry mode: type in income, expenses and savings goals by hand.
 Everything stays in this browser session. Nothing is saved or sent anywhere.
 """
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -75,22 +76,65 @@ def render():
     goals["progress"] = (goals["saved_so_far"] / goals["target"].where(goals["target"] > 0)
                          ).fillna(1.0).clip(upper=1.0)
 
-    for _, g in goals.iterrows():
-        with st.container(border=True):
-            st.markdown(f"**{g['goal']}** - \\${g['saved_so_far']:,.2f} of \\${g['target']:,.2f}")
-            st.progress(float(g["progress"]))
-            st.caption(f"Save \\${g['save_per_month']:,.2f} per month for "
-                       f"{int(g['months'])} months to get there.")
-
     needed = float(goals["save_per_month"].sum())
-    st.markdown(f"**All goals together need \\${needed:,.2f} per month.**")
+    cushion = left_over - needed
+
+    # ---------- Headline numbers ----------
+    st.markdown("### 💚 Your savings plan")
+    h1, h2, h3 = st.columns(3)
+    h1.metric("Save each month", f"${needed:,.2f}")
+    h2.metric("Left after expenses", f"${left_over:,.2f}")
+    h3.metric("Extra cushion" if cushion >= 0 else "Short by", f"${abs(cushion):,.2f}")
+
+    goals_col, chart_col = st.columns(2)
+
+    # ---------- One card per goal, with the monthly amount front and center ----------
+    with goals_col:
+        for _, g in goals.iterrows():
+            with st.container(border=True):
+                name = str(g["goal"]).replace("$", "\\$")
+                st.markdown(f"**{name}**")
+                st.markdown(f"## \\${g['save_per_month']:,.2f} / month")
+                st.progress(float(g["progress"]))
+                st.caption(f"\\${g['saved_so_far']:,.2f} saved of \\${g['target']:,.2f} "
+                           f"- {int(g['months'])} months to go")
+
+    # ---------- Donut: where your monthly money goes ----------
+    with chart_col:
+        st.markdown("**Where your monthly money goes**")
+        slices = [("Expenses", total_expenses, "#FB923C")]
+        goal_colors = ["#22C55E", "#16A34A", "#4ADE80", "#15803D", "#86EFAC"]
+        for i, (_, g) in enumerate(goals.iterrows()):
+            slices.append((f"Goal: {g['goal']}", float(g["save_per_month"]),
+                           goal_colors[i % len(goal_colors)]))
+        if cushion > 0:
+            slices.append(("Free to spend", cushion, "#FACC15"))
+        slices = [s for s in slices if s[1] > 0]
+        if slices:
+            names = [s[0] for s in slices]
+            pie = pd.DataFrame({"slice": names, "amount": [s[1] for s in slices]})
+            donut = alt.Chart(pie).mark_arc(
+                innerRadius=60, stroke="#14532D", strokeWidth=3
+            ).encode(
+                theta="amount:Q",
+                color=alt.Color("slice:N", sort=names, legend=alt.Legend(
+                    title=None, orient="bottom", columns=1, labelLimit=300),
+                    scale=alt.Scale(domain=names, range=[s[2] for s in slices])),
+                tooltip=["slice:N", alt.Tooltip("amount:Q", format="$,.2f")],
+            ).properties(height=320).configure_view(strokeWidth=0)
+            st.altair_chart(donut, width="stretch")
+            if cushion < 0:
+                st.caption("Expenses plus goals add up to more than your income.")
+        else:
+            st.caption("Enter income, expenses or goals to see the chart.")
+
     if needed == 0:
         st.success("You've already reached every goal listed. 🎉")
     elif left_over >= needed:
         st.success(f"You're on track. After expenses you have \\${left_over:,.2f} left, "
                    f"which covers the \\${needed:,.2f} you need.")
     elif left_over > 0:
-        st.warning(f"You're ${needed - left_over:,.2f} per month short. Try giving "
+        st.warning(f"You're \\${needed - left_over:,.2f} per month short. Try giving "
                    "yourself more months, or trimming an expense category.")
     else:
         st.error("Your expenses are at or above your income, so there's nothing left to "
