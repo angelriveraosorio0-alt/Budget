@@ -24,15 +24,26 @@ month, and whether you're on track for your savings goals.
 
 ## Run it yourself
 
-You need [Python 3](https://www.python.org/downloads/) installed.
+HealthyPockets has a **Next.js (React) website** in `frontend/` and a **Python (FastAPI)
+backend** in `backend/`. The older single-file Streamlit version (`app.py`) still works too.
+
+You need [Python 3](https://www.python.org/downloads/) and [Node.js](https://nodejs.org/).
 
 1. Download this repo (**Code → Download ZIP** on GitHub, or `git clone`).
-2. Open a terminal in the project folder and install the requirements:
+2. Open a terminal in the project folder and run:
+
+        dev.bat
+
+   The first run installs everything it needs. It then starts both servers:
+
+   - Website: http://127.0.0.1:3000
+   - API: http://127.0.0.1:8000/docs
+
+   Both update automatically when you save a file. Press `Ctrl+C` to stop.
+
+### Classic Streamlit version
 
         py -m pip install -r requirements.txt
-
-3. Start the app:
-
         py -m streamlit run app.py
 
 A browser tab opens at http://localhost:8501. Press `Ctrl+C` in the terminal to stop it.

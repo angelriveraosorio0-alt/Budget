@@ -1,0 +1,14 @@
+{
+  "name": "healthypockets",
+  "private": true,
+  "description": "HealthyPockets: Next.js frontend + Python (FastAPI) backend",
+  "scripts": {
+    "setup": "py -m pip install -r backend/requirements.txt && npm --prefix frontend install",
+    "dev": "concurrently -k -n api,web -c green,cyan \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "py -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000",
+    "dev:web": "npm --prefix frontend run dev -- --hostname 127.0.0.1 --port 3000"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
