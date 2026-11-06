@@ -5,15 +5,20 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { analyze, fetchColumns } from "@/lib/api";
-import { DARK_GREEN, GREEN, money } from "@/lib/format";
+import Icon from "./Icon";
+import { GREEN, money } from "@/lib/format";
 import type { Analysis, ColumnInfo } from "@/lib/types";
-import Metric from "./Metric";
+import PageHeader from "./PageHeader";
+import Pill from "./Pill";
+import StatCard from "./StatCard";
 
 type Selection = {
   dateCol: string;
@@ -55,6 +60,7 @@ export default function CsvMode() {
   const [useSample, setUseSample] = useState(false);
   const [info, setInfo] = useState<ColumnInfo | null>(null);
   const [sel, setSel] = useState<Selection | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [month, setMonth] = useState(ALL_MONTHS);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +87,10 @@ export default function CsvMode() {
         mode: c.mode,
         spendingIsPositive: false,
       });
+      // Open the column settings only when auto-detect couldn't find everything.
+      const found =
+        c.date_col && c.desc_col && (c.mode === "split" ? c.debit_col && c.credit_col : c.amount_col);
+      setSettingsOpen(!found);
       setError(null);
     } catch (err) {
       setInfo(null);
@@ -125,40 +135,56 @@ export default function CsvMode() {
 
   const patch = (p: Partial<Selection>) => setSel((s) => (s ? { ...s, ...p } : s));
 
+  const others = analysis ? analysis.transactions.filter((t) => t.category === "Other") : [];
+  const top = analysis?.by_category[0];
+
   return (
     <div>
-      <h2 className="section-title" style={{ marginTop: 0 }}>
-        1. Load your transactions
-      </h2>
-      <div className="card stack">
-        <label className="field">
-          Choose your bank&apos;s CSV file
-          <input className="file-input" type="file" accept=".csv,text/csv" onChange={onFileChange} />
-        </label>
-        <label className="check-row">
-          <input
-            type="checkbox"
-            checked={useSample}
-            onChange={(e) => onSampleChange(e.target.checked)}
-          />
-          Use sample (fake) data instead
-        </label>
-      </div>
+      <PageHeader title="Bank Dashboard">
+        <button className="btn" onClick={() => onSampleChange(!useSample)}>
+          {useSample ? "✕ Stop using sample data" : "Use sample data"}
+        </button>
+      </PageHeader>
 
       {error && <div className="alert error">{error}</div>}
 
+      <section className="panel" style={{ marginBottom: "1.5rem" }}>
+        <h2 className="panel-title">Your transactions</h2>
+        <label className="field">
+          Choose your bank&apos;s CSV file
+          <input type="file" accept=".csv,text/csv" onChange={onFileChange} />
+        </label>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          {useSample
+            ? "Showing the built-in sample (fake) data."
+            : info
+              ? `Loaded ${info.rows} rows. Your file stays on this computer.`
+              : "Your file stays on this computer and is never saved."}
+        </p>
+      </section>
+
       {!info && !error && (
-        <div className="alert info">
-          👆 Upload your bank&apos;s CSV file above, or tick &apos;Use sample data&apos; to try it
-          out.
-        </div>
+        <section className="panel empty">
+          <div className="empty-icon">
+            <Icon name="upload" size={30} />
+          </div>
+          <h2>Nothing to show yet</h2>
+          <p className="muted">
+            Upload your bank&apos;s CSV above, or tap &quot;Use sample data&quot; to try it out.
+          </p>
+        </section>
       )}
 
       {info && sel && (
-        <>
-          <h2 className="section-title">2. Match the columns</h2>
-          <div className="card stack">
-            <div className="grid-2">
+        <details
+          className="panel settings"
+          style={{ marginBottom: "1.5rem" }}
+          open={settingsOpen}
+          onToggle={(e) => setSettingsOpen(e.currentTarget.open)}
+        >
+          <summary>Match the columns</summary>
+          <div className="stack" style={{ marginTop: "1rem" }}>
+            <div className="row halves" style={{ marginBottom: 0 }}>
               <ColumnSelect
                 label="Date column"
                 value={sel.dateCol}
@@ -211,7 +237,7 @@ export default function CsvMode() {
                 </label>
               </>
             ) : (
-              <div className="grid-2">
+              <div className="row halves" style={{ marginBottom: 0 }}>
                 <ColumnSelect
                   label="Debit (money out) column"
                   value={sel.debitCol}
@@ -227,13 +253,12 @@ export default function CsvMode() {
               </div>
             )}
           </div>
-        </>
+        </details>
       )}
 
       {analysis && (
         <>
-          <h2 className="section-title">3. Your budget</h2>
-          <label className="field" style={{ maxWidth: 280 }}>
+          <label className="field" style={{ maxWidth: 260, marginBottom: "1rem" }}>
             Month
             <select value={month} onChange={(e) => setMonth(e.target.value)}>
               <option>{ALL_MONTHS}</option>
@@ -243,123 +268,170 @@ export default function CsvMode() {
             </select>
           </label>
 
-          <div className="metrics">
-            <Metric label="Income" value={money(analysis.summary.income)} />
-            <Metric label="Spending" value={money(analysis.summary.spending)} />
-            <Metric
+          <div className="stats">
+            <StatCard
+              label="Total income"
+              value={money(analysis.summary.income)}
+              sub={month}
+              icon="💵"
+              tone="green"
+            />
+            <StatCard
+              label="Total spending"
+              value={money(analysis.summary.spending)}
+              sub={`${analysis.transaction_count} transactions`}
+              icon="💸"
+              tone="yellow"
+            />
+            <StatCard
               label="Net (left over)"
               value={money(analysis.summary.net)}
+              sub={analysis.summary.net >= 0 ? "Nice, you're in the green" : "Spending is above income"}
+              icon="🏦"
+              tone={analysis.summary.net >= 0 ? "blue" : "red"}
               bad={analysis.summary.net < 0}
+            />
+            <StatCard
+              label="Top category"
+              value={top ? top.category : "-"}
+              sub={top ? `${money(top.amount)} (${top.percent.toFixed(0)}% of spending)` : "No spending yet"}
+              icon="🏷️"
+              tone="red"
             />
           </div>
 
-          <div className="grid-2">
-            <div>
-              <h3>Spending by category</h3>
+          <div className="row main-side">
+            <section className="panel">
+              <h2 className="panel-title">Spending trend</h2>
+              <div style={{ height: 260 }}>
+                <ResponsiveContainer initialDimension={{ width: 320, height: 200 }}>
+                  <LineChart data={analysis.by_month} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis tickFormatter={(v) => `$${v}`} width={64} />
+                    <Tooltip formatter={(v) => money(Number(v))} />
+                    <Line
+                      type="monotone"
+                      dataKey="amount"
+                      stroke={GREEN}
+                      strokeWidth={4}
+                      dot={{ r: 6, fill: GREEN }}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            {others.length > 0 ? (
+              <section className="panel attention">
+                <h2 className="panel-title">Needs a look</h2>
+                <p style={{ marginTop: 0 }}>
+                  {analysis.other_count} transaction{analysis.other_count === 1 ? " is" : "s are"}{" "}
+                  in &quot;Other&quot; because no rule matched. Add keywords to RULES in
+                  budget.py to sort them.
+                </p>
+                <div className="stack" style={{ gap: "0.4rem" }}>
+                  {others.slice(0, 4).map((t, i) => (
+                    <div key={i} className="muted">
+                      {t.date} - {t.description} ({money(t.amount)})
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <section className="panel good">
+                <h2 className="panel-title">All sorted</h2>
+                <p style={{ margin: 0 }}>Every transaction matched a category.</p>
+              </section>
+            )}
+          </div>
+
+          <div className="row halves">
+            <section className="panel">
+              <h2 className="panel-title">Spending by category</h2>
               {analysis.by_category.length === 0 ? (
                 <p className="muted">No spending in this period.</p>
               ) : (
-                <>
-                  <div className="card" style={{ height: 280 }}>
-                    <ResponsiveContainer>
-                      <BarChart data={analysis.by_category}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} angle={-30} textAnchor="end" height={60} />
-                        <YAxis tickFormatter={(v) => `$${v}`} width={60} />
-                        <Tooltip formatter={(v) => money(Number(v))} />
-                        <Bar
-                          dataKey="amount"
-                          fill={GREEN}
-                          stroke={DARK_GREEN}
-                          strokeWidth={2}
-                          radius={[6, 6, 0, 0]}
-                          isAnimationActive={false}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="table-wrap" style={{ marginTop: 16 }}>
-                    <table className="tbl">
-                      <thead>
-                        <tr>
-                          <th>Category</th>
-                          <th className="num">Amount</th>
-                          <th className="num">% of spending</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {analysis.by_category.map((c) => (
-                          <tr key={c.category}>
-                            <td>{c.category}</td>
-                            <td className="num">{money(c.amount)}</td>
-                            <td className="num">{c.percent.toFixed(1)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                <div style={{ height: Math.max(180, analysis.by_category.length * 38 + 30) }}>
+                  <ResponsiveContainer initialDimension={{ width: 320, height: 200 }}>
+                    <BarChart data={analysis.by_category} layout="vertical" margin={{ left: 0, right: 16 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" tickFormatter={(v) => `$${v}`} />
+                      <YAxis type="category" dataKey="category" width={104} />
+                      <Tooltip formatter={(v) => money(Number(v))} />
+                      <Bar
+                        dataKey="amount"
+                        fill={GREEN}
+                        radius={[0, 8, 8, 0]}
+                        isAnimationActive={false}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               )}
-            </div>
+            </section>
 
-            <div>
-              <h3>Spending by month</h3>
-              <div className="card" style={{ height: 280 }}>
-                <ResponsiveContainer>
-                  <BarChart data={analysis.by_month}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tickFormatter={(v) => `$${v}`} width={60} />
-                    <Tooltip formatter={(v) => money(Number(v))} />
-                    <Bar
-                      dataKey="amount"
-                      fill="#16a34a"
-                      stroke={DARK_GREEN}
-                      strokeWidth={2}
-                      radius={[6, 6, 0, 0]}
-                      isAnimationActive={false}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+            <section className="panel">
+              <h2 className="panel-title">Category breakdown</h2>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th className="num">Amount</th>
+                      <th className="num">Share</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analysis.by_category.map((c) => (
+                      <tr key={c.category}>
+                        <td>
+                          <Pill category={c.category} />
+                        </td>
+                        <td className="num">{money(c.amount)}</td>
+                        <td className="num">{c.percent.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            </section>
           </div>
 
-          <h3 style={{ marginTop: 24 }}>Transactions</h3>
-          {analysis.other_count > 0 && (
-            <div className="alert warn">
-              {analysis.other_count} transaction(s) are in &apos;Other&apos; because no rule
-              matched. You can add keywords to RULES in budget.py.
-            </div>
-          )}
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th className="num">Amount</th>
-                  <th>Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analysis.transactions.map((t, i) => (
-                  <tr key={i}>
-                    <td>{t.date}</td>
-                    <td>{t.description}</td>
-                    <td className="num">{money(t.amount)}</td>
-                    <td>{t.category}</td>
+          <section className="panel">
+            <h2 className="panel-title">Recent transactions</h2>
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th className="num">Amount</th>
+                    <th>Category</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {analysis.transaction_count > analysis.transactions.length && (
-            <p className="muted">
-              Showing the newest {analysis.transactions.length} of {analysis.transaction_count}{" "}
-              transactions.
-            </p>
-          )}
+                </thead>
+                <tbody>
+                  {analysis.transactions.map((t, i) => (
+                    <tr key={i}>
+                      <td>{t.date}</td>
+                      <td>{t.description}</td>
+                      <td className="num">{money(t.amount)}</td>
+                      <td>
+                        <Pill category={t.category} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {analysis.transaction_count > analysis.transactions.length && (
+              <p className="muted" style={{ marginBottom: 0 }}>
+                Showing the newest {analysis.transactions.length} of {analysis.transaction_count}{" "}
+                transactions.
+              </p>
+            )}
+          </section>
         </>
       )}
     </div>

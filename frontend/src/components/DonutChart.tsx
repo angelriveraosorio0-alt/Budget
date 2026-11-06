@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { DARK_GREEN, money } from "@/lib/format";
+import { money } from "@/lib/format";
 
 export type Slice = { name: string; value: number; color: string };
 
@@ -13,7 +13,7 @@ export default function DonutChart({ slices }: { slices: Slice[] }) {
   return (
     <div>
       <div style={{ width: "100%", height: 260 }}>
-        <ResponsiveContainer>
+        <ResponsiveContainer initialDimension={{ width: 320, height: 200 }}>
           <PieChart>
             <Pie
               data={data}
@@ -21,8 +21,6 @@ export default function DonutChart({ slices }: { slices: Slice[] }) {
               nameKey="name"
               innerRadius="55%"
               outerRadius="95%"
-              stroke={DARK_GREEN}
-              strokeWidth={3}
               isAnimationActive={false}
             >
               {data.map((s) => (

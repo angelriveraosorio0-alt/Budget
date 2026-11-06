@@ -10,8 +10,35 @@ export function toNumber(text: string): number {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-export const GREEN = "#22c55e";
-export const DARK_GREEN = "#14532d";
-export const ORANGE = "#fb923c";
-export const YELLOW = "#facc15";
-export const GOAL_COLORS = ["#22c55e", "#16a34a", "#4ade80", "#15803d", "#86efac"];
+const PILL_TONES: Record<string, string> = {
+  Income: "green",
+  Groceries: "green",
+  Housing: "blue",
+  Transport: "blue",
+  Utilities: "blue",
+  Dining: "yellow",
+  Shopping: "yellow",
+  Subscriptions: "pink",
+  "Personal Care": "pink",
+  Other: "gray",
+};
+
+/** Which pill colour a category gets. */
+export function pillTone(category: string): string {
+  return PILL_TONES[category] ?? "gray";
+}
+
+export function todayLabel(): string {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export const GREEN = "#2563eb";
+export const DARK_GREEN = "#1e3a8a";
+export const ORANGE = "#94a3b8";
+export const YELLOW = "#38bdf8";
+export const GOAL_COLORS = ["#2563eb", "#4f46e5", "#0ea5e9", "#1d4ed8", "#818cf8"];
